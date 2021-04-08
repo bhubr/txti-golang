@@ -1,0 +1,14 @@
+<h1><a href="{{ home }}">go-txti</a></h1>
+<h2>A golang-based <a href="http://txti.es/">txti</a> clone</h2>
+<p>Fast web pages for everybody.</p>
+<a href="http://txti.es/about">What is txti?</a> | <a href="http://txti.es/how">How to use txti</a>
+<h2>Create a txti</h2>
+<form id="create-a-txti" method="post" action="/txtis/create">
+	<label for="content-input">Content (required)</label>
+	<textarea class="text-input" id="content-input" name="content"></textarea>
+	<input type="hidden" name="form_level" value="1">
+	<p>By continuing, you agree to the <a href="http://txti.es/terms">terms of service.</a></p>
+	<label for="username" class="nope">If you are human, leave this field blank (required):</label><input type="text" id="username" class="nope" name="username">
+	<input type="submit" id="submit" name="submit" value="Save and done">
+	 or <input type="submit" id="increase_form_level" name="increase_form_level" value="Show more options">
+</form>
