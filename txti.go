@@ -6,7 +6,10 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"path"
 	"strings"
+
+	"github.com/aymerick/raymond"
 )
 
 type Page struct {
@@ -31,23 +34,38 @@ func loadPage(title string) (*Page, error) {
 	return &Page{Title: title, Body: body}, nil
 }
 
-/*-----------*
-| Templates  |
-*------------*/
-func loadTemplates() map[string]string {
-	// read templates directory
-	files, err := ioutil.ReadDir("templates")
+func exitOnError(err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// make map
-	tmplMap := make(map[string]string)
-	// parse templates
+}
+
+/*-----------*
+| Templates  |
+*------------*/
+func loadTemplates() map[string]*raymond.Template {
+	// read templates directory
+	files, err := ioutil.ReadDir("templates")
+	exitOnError(err)
+
+	// make templates map
+	tmplMap := make(map[string]*raymond.Template)
+
+	// read and parse templates
 	for _, file := range files {
-		bits := strings.Split(file.Name(), ".")
+		// read file content
+		filename := file.Name()
+		contents, err := ioutil.ReadFile(path.Join("templates", filename))
+		exitOnError(err)
+
+		// parse template
+		tmpl, err := raymond.Parse(string(contents))
+		exitOnError(err)
+
+		bits := strings.Split(filename, ".")
 		basename := bits[0]
-		tmplMap[basename] = basename
-		fmt.Println(file.Name(), basename)
+		tmplMap[basename] = tmpl
+		fmt.Println(filename, tmpl)
 	}
 	fmt.Println(tmplMap)
 	// return a map
