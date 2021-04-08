@@ -43,44 +43,67 @@ func exitOnError(err error) {
 /*-----------*
 | Templates  |
 *------------*/
-func loadTemplates() map[string]*raymond.Template {
+
+// make templates map
+var tmplMap = make(map[string]string)
+var layoutTmpl *raymond.Template
+
+// load templates from directory
+func loadTemplates() {
 	// read templates directory
 	files, err := ioutil.ReadDir("templates")
 	exitOnError(err)
 
-	// make templates map
-	tmplMap := make(map[string]*raymond.Template)
-
 	// read and parse templates
 	for _, file := range files {
-		// read file content
+		// extract basename
 		filename := file.Name()
+		bits := strings.Split(filename, ".")
+		basename := bits[0]
+
+		// read file content
 		contents, err := ioutil.ReadFile(path.Join("templates", filename))
 		exitOnError(err)
 
-		// parse template
-		tmpl, err := raymond.Parse(string(contents))
-		exitOnError(err)
+		// parse layout template
+		if basename == "layout" {
+			layoutTmpl, err = raymond.Parse(string(contents))
+			exitOnError(err)
+			continue
+		}
 
-		bits := strings.Split(filename, ".")
-		basename := bits[0]
-		tmplMap[basename] = tmpl
-		fmt.Println(filename, tmpl)
+		tmplMap[basename] = string(contents)
+		// fmt.Println(filename, tmpl)
 	}
 	fmt.Println(tmplMap)
 	// return a map
-	return tmplMap
+	// return tmplMap
+
+	raymond.RegisterPartials(tmplMap)
+}
+
+func render(tmplKey string) string {
+	ctx := map[string]interface{}{
+		"whichPartial": func() string {
+			return tmplKey
+		},
+	}
+	result, err := layoutTmpl.Exec(ctx)
+	exitOnError(err)
+	return result
 }
 
 /*-----------*
 | Handlers   |
 *------------*/
 func homeHandler(w http.ResponseWriter, r *http.Request) {
-	p, err := loadPage("Home")
-	if err != nil {
-		p = &Page{Title: "Home", Body: []byte("No content! Edit this page!")}
-	}
-	renderTemplate(w, "view.html", p)
+	// p, err := loadPage("Home")
+	// if err != nil {
+	// 	p = &Page{Title: "Home", Body: []byte("No content! Edit this page!")}
+	// }
+	// renderTemplate(w, "view.html", p)
+	html := render("home")
+	fmt.Fprintf(w, html)
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
