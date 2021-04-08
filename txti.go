@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 )
 
 type Page struct {
@@ -12,6 +14,9 @@ type Page struct {
 	Body  []byte
 }
 
+/*----------*
+| Pages     |
+*-----------*/
 func (p *Page) save() error {
 	filename := p.Title + ".txt"
 	return ioutil.WriteFile(filename, p.Body, 0600)
@@ -26,6 +31,32 @@ func loadPage(title string) (*Page, error) {
 	return &Page{Title: title, Body: body}, nil
 }
 
+/*-----------*
+| Templates  |
+*------------*/
+func loadTemplates() map[string]string {
+	// read templates directory
+	files, err := ioutil.ReadDir("templates")
+	if err != nil {
+		log.Fatal(err)
+	}
+	// make map
+	tmplMap := make(map[string]string)
+	// parse templates
+	for _, file := range files {
+		bits := strings.Split(file.Name(), ".")
+		basename := bits[0]
+		tmplMap[basename] = basename
+		fmt.Println(file.Name(), basename)
+	}
+	fmt.Println(tmplMap)
+	// return a map
+	return tmplMap
+}
+
+/*-----------*
+| Handlers   |
+*------------*/
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	p, err := loadPage("Home")
 	if err != nil {
@@ -68,9 +99,11 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+
 }
 
 func main() {
+	loadTemplates()
 	http.HandleFunc("/", homeHandler)
 	http.HandleFunc("/view/", viewHandler)
 	http.HandleFunc("/edit/", editHandler)
